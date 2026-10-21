@@ -57,6 +57,34 @@ class OrderEditAndInvoiceStatusTest extends TestCase
         $this->assertSame(0, $order->items()->count());
     }
 
+    public function test_items_can_be_updated_and_deleted_from_order_detail(): void
+    {
+        $order = $this->makeOrder();
+        $item = $order->items()->first();
+
+        $this->get(route('service-orders.show', $order))->assertOk()->assertSee('Eliminar');
+
+        $this->put(route('service-orders.items.update', [$order, $item->id]), ['quantity' => 5])->assertSessionHasNoErrors();
+        $this->assertEquals('5.00', $item->fresh()->quantity);
+        $this->assertEquals(round(5 * (float) $item->unit_price, 2), (float) $item->fresh()->subtotal);
+
+        $this->put(route('service-orders.items.update', [$order, $item->id]), ['quantity' => 0])->assertSessionHasErrors('quantity');
+
+        $this->delete(route('service-orders.items.destroy', [$order, $item->id]))->assertSessionHasNoErrors();
+        $this->assertSame(0, $order->items()->count());
+    }
+
+    public function test_items_of_invoiced_order_are_locked(): void
+    {
+        $order = $this->makeOrder();
+        $item = $order->items()->first();
+        app(ServiceOrderService::class)->changeStatus($order, ServiceOrder::COMPLETED);
+        app(InvoicingService::class)->createFromOrders(Client::firstOrFail(), [$order->id]);
+
+        $this->delete(route('service-orders.items.destroy', [$order, $item->id]))->assertSessionHasErrors('items');
+        $this->assertSame(1, $order->items()->count());
+    }
+
     public function test_invoiced_order_cannot_be_edited(): void
     {
         $order = $this->makeOrder();
