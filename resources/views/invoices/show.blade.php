@@ -6,13 +6,34 @@
         <div>
             <h1 class="text-2xl font-bold">Factura {{ $invoice->number }}</h1>
             <p class="text-sm text-slate-500">{{ $invoice->client->name }} · Emitida {{ $invoice->issued_at->format('d/m/Y') }}
-                @if ($invoice->due_at) · Vence {{ $invoice->due_at->format('d/m/Y') }} @endif</p>
-        </div>
-        <div class="flex gap-2">
+                @if ($invoice->due_at) · Vence {{ $invoice->due_at->format('d/m/Y') }}                 @endif
+                               · Estado: <span class="rounded-full bg-slate-200 px-2 py-0.5 text-xs">{{ \App\Models\Invoice::STATUS_LABELS[$invoice->status] ?? $invoice->status }}</span>
+                               @if ($invoice->sent_at) · Enviada {{ $invoice->sent_at->format('d/m/Y') }} @endif
+                               @if ($invoice->paid_at) · Pagada {{ $invoice->paid_at->format('d/m/Y') }} @endif</p>
+                       </div>
+                       <div class="flex flex-wrap gap-2">
+                           @if ($invoice->status === 'issued')
+                               <form method="POST" action="{{ route('invoices.status', $invoice) }}">
+                                   @csrf @method('PATCH')
+                                   <input type="hidden" name="status" value="sent">
+                                   <button class="rounded-md bg-amber-500 px-4 py-2 text-sm text-white">Marcar enviada a cobro</button>
+                               </form>
+                           @endif
+                           @if ($invoice->status !== 'paid')
+                               <form method="POST" action="{{ route('invoices.status', $invoice) }}">
+                                   @csrf @method('PATCH')
+                                   <input type="hidden" name="status" value="paid">
+                                   <button class="rounded-md bg-emerald-600 px-4 py-2 text-sm text-white">Marcar pagada</button>
+                               </form>
+                           @endif
             <a href="{{ route('invoices.pdf', $invoice) }}" target="_blank" class="rounded-md bg-slate-800 px-4 py-2 text-sm text-white">Ver PDF</a>
             <a href="{{ route('invoices.pdf', [$invoice, 'download' => 1]) }}" class="rounded-md bg-sky-600 px-4 py-2 text-sm text-white">Descargar PDF</a>
         </div>
     </div>
+
+    @if ($errors->any())
+        <div class="mb-4 rounded-md bg-rose-50 p-3 text-sm text-rose-700">@foreach ($errors->all() as $e)<div>{{ $e }}</div>@endforeach</div>
+    @endif
 
     @foreach ($invoice->serviceOrders as $order)
         <div class="mb-4 rounded-xl bg-white p-5 shadow-sm">

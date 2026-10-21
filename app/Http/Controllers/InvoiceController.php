@@ -66,6 +66,29 @@ class InvoiceController extends Controller
         return $request->wantsJson() ? response()->json($invoice) : view('invoices.show', compact('invoice'));
     }
 
+    public function updateStatus(Request $request, Invoice $invoice): JsonResponse|RedirectResponse
+    {
+        $status = $request->validate([
+            'status' => ['required', 'in:'.Invoice::SENT.','.Invoice::PAID],
+        ])['status'];
+
+        if ($invoice->status === Invoice::PAID) {
+            throw ValidationException::withMessages(['status' => 'La factura ya está pagada.']);
+        }
+
+        if ($invoice->status === Invoice::SENT && $status === Invoice::SENT) {
+            throw ValidationException::withMessages(['status' => 'La factura ya fue enviada a cobro.']);
+        }
+
+        $invoice->update([
+            'status' => $status,
+            'sent_at' => $invoice->sent_at ?? now(),
+            'paid_at' => $status === Invoice::PAID ? now() : null,
+        ]);
+
+        return $request->wantsJson() ? response()->json($invoice) : back()->with('status', 'Estado de la factura actualizado.');
+    }
+
     public function pdf(Request $request, Invoice $invoice, InvoicePdfService $pdf): Response
     {
         $document = $pdf->render($invoice);

@@ -7,14 +7,26 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['number', 'client_id', 'tariff_list_id', 'currency', 'issued_at', 'due_at', 'subtotal', 'tax_rate', 'tax', 'total', 'status', 'notes'])]
+#[Fillable(['number', 'client_id', 'tariff_list_id', 'currency', 'issued_at', 'due_at', 'subtotal', 'tax_rate', 'tax', 'total', 'status', 'notes', 'sent_at', 'paid_at'])]
 class Invoice extends Model
 {
+    public const ISSUED = 'issued';
+    public const SENT = 'sent';
+    public const PAID = 'paid';
+
+    public const STATUS_LABELS = [
+        self::ISSUED => 'Emitida',
+        self::SENT => 'Enviada a cobro',
+        self::PAID => 'Pagada',
+    ];
+
     protected function casts(): array
     {
         return [
             'issued_at' => 'date',
             'due_at' => 'date',
+            'sent_at' => 'datetime',
+            'paid_at' => 'datetime',
             'subtotal' => 'decimal:2',
             'tax_rate' => 'decimal:2',
             'tax' => 'decimal:2',
