@@ -14,6 +14,12 @@ class WebFlowTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->actingAs(\App\Models\User::factory()->create());
+    }
+
     public function test_full_ui_flow(): void
     {
         $this->seed(TariffSeeder::class);

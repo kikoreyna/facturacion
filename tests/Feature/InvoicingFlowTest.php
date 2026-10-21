@@ -17,6 +17,12 @@ class InvoicingFlowTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->actingAs(\App\Models\User::factory()->create());
+    }
+
     public function test_orders_accumulate_into_one_invoice_and_render_pdf(): void
     {
         $this->seed(TariffSeeder::class);

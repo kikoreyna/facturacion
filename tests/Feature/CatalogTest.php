@@ -12,6 +12,12 @@ class CatalogTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->actingAs(\App\Models\User::factory()->create());
+    }
+
     public function test_create_tariff_list_and_service_with_prices(): void
     {
         $this->post(route('tariff-lists.store'), ['name' => 'Gold', 'is_active' => 1])->assertRedirect(route('tariff-lists.index'));

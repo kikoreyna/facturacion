@@ -16,6 +16,12 @@ class CurrencyTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->actingAs(\App\Models\User::factory()->create());
+    }
+
     public function test_currency_is_per_tariff_and_not_mixed(): void
     {
         $this->seed(TariffSeeder::class);
