@@ -68,6 +68,39 @@ class ServiceOrderService
         ]);
     }
 
+    public function update(ServiceOrder $order, array $data): ServiceOrder
+    {
+        $this->assertEditable($order);
+
+        $order->update([
+            'title' => $data['title'],
+            'description' => $data['description'] ?? null,
+            'scheduled_at' => $data['scheduled_at'] ?? null,
+        ]);
+
+        return $order;
+    }
+
+    public function updateItem(ServiceOrderItem $item, float $quantity, ?string $description = null): ServiceOrderItem
+    {
+        $this->assertEditable($item->serviceOrder);
+
+        $item->update([
+            'quantity' => $quantity,
+            'description' => $description,
+            'subtotal' => round($quantity * (float) $item->unit_price, 2),
+        ]);
+
+        return $item;
+    }
+
+    public function removeItem(ServiceOrderItem $item): void
+    {
+        $this->assertEditable($item->serviceOrder);
+
+        $item->delete();
+    }
+
     public function addLog(ServiceOrder $order, string $body, ?User $author = null, bool $showOnInvoice = false): ServiceOrderLog
     {
         return $order->logs()->create([

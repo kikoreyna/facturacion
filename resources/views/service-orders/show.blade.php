@@ -12,6 +12,10 @@
             </p>
         </div>
         @if ($order->status !== 'invoiced')
+            <div class="flex gap-2">
+            @if ($editable)
+                <a href="{{ route('service-orders.edit', $order) }}" class="rounded-md bg-amber-500 px-3 py-2 text-sm text-white">Editar</a>
+            @endif
             <form method="POST" action="{{ route('service-orders.status', $order) }}" class="flex gap-2">
                 @csrf @method('PATCH')
                 <select name="status" class="rounded-md border border-slate-300 px-3 py-2 text-sm">
@@ -21,6 +25,7 @@
                 </select>
                 <button class="rounded-md bg-slate-800 px-3 py-2 text-sm text-white">Cambiar estado</button>
             </form>
+            </div>
         @endif
     </div>
 

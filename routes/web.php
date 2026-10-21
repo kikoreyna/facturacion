@@ -28,6 +28,8 @@ Route::middleware('auth')->group(function () {
         Route::get('create', [ServiceOrderController::class, 'create'])->name('create');
         Route::post('/', [ServiceOrderController::class, 'store'])->name('store');
         Route::get('{serviceOrder}', [ServiceOrderController::class, 'show'])->name('show');
+        Route::get('{serviceOrder}/edit', [ServiceOrderController::class, 'edit'])->name('edit');
+        Route::put('{serviceOrder}', [ServiceOrderController::class, 'update'])->name('update');
         Route::post('{serviceOrder}/items', [ServiceOrderController::class, 'storeItem'])->name('items.store');
         Route::post('{serviceOrder}/logs', [ServiceOrderController::class, 'storeLog'])->name('logs.store');
         Route::patch('{serviceOrder}/status', [ServiceOrderController::class, 'updateStatus'])->name('status');
@@ -38,4 +40,5 @@ Route::middleware('auth')->group(function () {
     Route::post('invoices', [InvoiceController::class, 'store'])->name('invoices.store');
     Route::get('invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
     Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf');
+    Route::patch('invoices/{invoice}/status', [InvoiceController::class, 'updateStatus'])->name('invoices.status');
 });

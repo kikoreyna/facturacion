@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreServiceOrderLogRequest;
 use App\Http\Requests\StoreServiceOrderRequest;
+use App\Http\Requests\UpdateServiceOrderRequest;
 use App\Models\Client;
 use App\Models\Service;
 use App\Models\ServiceOrder;
@@ -12,6 +13,7 @@ use DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -62,6 +64,43 @@ class ServiceOrderController extends Controller
             'order' => $serviceOrder,
             'services' => Service::where('is_active', true)->orderBy('name')->get(['id', 'name']),
         ]);
+    }
+
+    public function edit(ServiceOrder $serviceOrder): View|RedirectResponse
+    {
+        if (in_array($serviceOrder->status, [ServiceOrder::INVOICED, ServiceOrder::CANCELLED], true)) {
+            return redirect()->route('service-orders.show', $serviceOrder)
+                ->withErrors(['status' => 'La orden ya no admite modificaciones.']);
+        }
+
+        return view('service-orders.edit', ['order' => $serviceOrder->load('client', 'items.service')]);
+    }
+
+    public function update(UpdateServiceOrderRequest $request, ServiceOrder $serviceOrder): RedirectResponse
+    {
+        try {
+            DB::transaction(function () use ($request, $serviceOrder) {
+                $this->orders->update($serviceOrder, $request->validated());
+
+                foreach ($request->input('items', []) as $id => $row) {
+                    $item = $serviceOrder->items()->findOrFail($id);
+
+                    if (! empty($row['remove'])) {
+                        $this->orders->removeItem($item);
+                    } else {
+                        $quantity = (float) ($row['quantity'] ?? 0);
+                        if ($quantity <= 0) {
+                            throw new DomainException('La cantidad debe ser mayor a 0.');
+                        }
+                        $this->orders->updateItem($item, $quantity, $row['description'] ?? null);
+                    }
+                }
+            });
+        } catch (DomainException $e) {
+            throw ValidationException::withMessages(['items' => $e->getMessage()]);
+        }
+
+        return redirect()->route('service-orders.show', $serviceOrder)->with('status', 'Orden actualizada.');
     }
 
     public function storeItem(Request $request, ServiceOrder $serviceOrder): RedirectResponse
