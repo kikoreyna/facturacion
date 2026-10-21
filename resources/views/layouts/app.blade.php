@@ -33,6 +33,13 @@
                 @endforeach
             </div>
 
+            <form method="POST" action="{{ route('logout') }}" class="hidden md:block">
+                @csrf
+                <button type="submit" class="rounded-md px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white">
+                    Salir
+                </button>
+            </form>
+
             <button type="button" class="md:hidden rounded p-2 hover:bg-slate-800" aria-label="Menú"
                     onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -48,6 +55,10 @@
                     {{ $label }}
                 </a>
             @endforeach
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="block w-full rounded-md px-3 py-2 text-left text-sm text-slate-300 hover:bg-slate-800">Salir</button>
+            </form>
         </div>
     </nav>
 
