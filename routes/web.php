@@ -31,6 +31,8 @@ Route::middleware('auth')->group(function () {
         Route::get('{serviceOrder}/edit', [ServiceOrderController::class, 'edit'])->name('edit');
         Route::put('{serviceOrder}', [ServiceOrderController::class, 'update'])->name('update');
         Route::post('{serviceOrder}/items', [ServiceOrderController::class, 'storeItem'])->name('items.store');
+        Route::put('{serviceOrder}/items/{item}', [ServiceOrderController::class, 'updateItem'])->name('items.update');
+        Route::delete('{serviceOrder}/items/{item}', [ServiceOrderController::class, 'destroyItem'])->name('items.destroy');
         Route::post('{serviceOrder}/logs', [ServiceOrderController::class, 'storeLog'])->name('logs.store');
         Route::patch('{serviceOrder}/status', [ServiceOrderController::class, 'updateStatus'])->name('status');
     });

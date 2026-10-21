@@ -39,20 +39,39 @@
         <div class="rounded-xl bg-white p-5 shadow-sm">
             <h2 class="mb-3 font-semibold">Servicios</h2>
             <table class="w-full text-left text-sm">
-                <thead class="text-slate-500"><tr><th class="py-1">Servicio</th><th class="text-right">Cant.</th><th class="text-right">P. unit.</th><th class="text-right">Importe</th></tr></thead>
+                <thead class="text-slate-500"><tr><th class="py-1">Servicio</th><th class="text-right">Cant.</th><th class="text-right">P. unit.</th><th class="text-right">Importe</th>@if ($editable)<th></th>@endif</tr></thead>
                 <tbody>
                 @forelse ($order->items as $item)
                     <tr class="border-t">
                         <td class="py-1">{{ $item->service->name }}</td>
-                        <td class="text-right">{{ $item->quantity }}</td>
+                        <td class="text-right">
+                            @if ($editable)
+                                <form id="item-{{ $item->id }}" method="POST" action="{{ route('service-orders.items.update', [$order, $item->id]) }}">
+                                    @csrf @method('PUT')
+                                    <input name="quantity" type="number" step="0.01" min="0.01" value="{{ $item->quantity }}" class="w-20 rounded-md border border-slate-300 px-2 py-1 text-right text-sm">
+                                </form>
+                            @else
+                                {{ $item->quantity }}
+                            @endif
+                        </td>
                         <td class="text-right">{{ \App\Support\Currency::format($item->unit_price, $item->currency) }}</td>
                         <td class="text-right">{{ \App\Support\Currency::format($item->subtotal, $item->currency) }}</td>
+                        @if ($editable)
+                            <td class="whitespace-nowrap pl-2 text-right">
+                                <button form="item-{{ $item->id }}" class="text-sky-600 hover:underline">Guardar</button>
+                                <form method="POST" action="{{ route('service-orders.items.destroy', [$order, $item->id]) }}" class="inline"
+                                      onsubmit="return confirm('¿Eliminar este servicio de la orden?')">
+                                    @csrf @method('DELETE')
+                                    <button class="ml-2 text-rose-600 hover:underline">Eliminar</button>
+                                </form>
+                            </td>
+                        @endif
                     </tr>
                 @empty
-                    <tr><td colspan="4" class="py-3 text-center text-slate-400">Sin servicios.</td></tr>
+                    <tr><td colspan="5" class="py-3 text-center text-slate-400">Sin servicios.</td></tr>
                 @endforelse
                 </tbody>
-                <tfoot><tr class="border-t font-semibold"><td colspan="3" class="py-2 text-right">Total</td><td class="text-right">{{ \App\Support\Currency::format($order->items->sum('subtotal'), $order->currency) }}</td></tr></tfoot>
+                <tfoot><tr class="border-t font-semibold"><td colspan="3" class="py-2 text-right">Total</td><td class="text-right">{{ \App\Support\Currency::format($order->items->sum('subtotal'), $order->currency) }}</td>@if ($editable)<td></td>@endif</tr></tfoot>
             </table>
 
             @if ($editable)

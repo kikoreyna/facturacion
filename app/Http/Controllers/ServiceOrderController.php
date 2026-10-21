@@ -120,6 +120,33 @@ class ServiceOrderController extends Controller
         return back()->with('status', 'Servicio agregado.');
     }
 
+    public function updateItem(Request $request, ServiceOrder $serviceOrder, int $item): RedirectResponse
+    {
+        $data = $request->validate([
+            'quantity' => ['required', 'numeric', 'gt:0'],
+            'description' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        try {
+            $this->orders->updateItem($serviceOrder->items()->findOrFail($item), (float) $data['quantity'], $data['description'] ?? null);
+        } catch (DomainException $e) {
+            throw ValidationException::withMessages(['items' => $e->getMessage()]);
+        }
+
+        return back()->with('status', 'Servicio actualizado.');
+    }
+
+    public function destroyItem(ServiceOrder $serviceOrder, int $item): RedirectResponse
+    {
+        try {
+            $this->orders->removeItem($serviceOrder->items()->findOrFail($item));
+        } catch (DomainException $e) {
+            throw ValidationException::withMessages(['items' => $e->getMessage()]);
+        }
+
+        return back()->with('status', 'Servicio eliminado.');
+    }
+
     public function storeLog(StoreServiceOrderLogRequest $request, ServiceOrder $serviceOrder): JsonResponse|RedirectResponse
     {
         $log = $this->orders->addLog(
